@@ -107,6 +107,20 @@
 .period-chip{display:inline-block;font-size:10px;color:var(--teal);background:rgba(0,198,190,.1);border:1px solid var(--teal-dim);border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:middle;letter-spacing:.5px}
 .price-hint{font-size:11px;color:var(--muted);margin-top:3px}
 
+/* CATAT TOGGLE */
+.catat-toggle{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;gap:4px;margin-bottom:16px}
+.toggle-btn{border:none;background:transparent;color:var(--muted);font-family:var(--fh);font-size:12px;font-weight:700;padding:9px 4px;border-radius:7px;cursor:pointer;transition:all .2s;letter-spacing:.3px}
+.toggle-btn.active-sewa{background:var(--gold);color:#080D14}
+.toggle-btn.active-masuk{background:var(--green);color:#080D14}
+.toggle-btn.active-keluar{background:var(--red);color:#fff}
+.sub-form{display:none} .sub-form.active{display:flex;flex-direction:column;gap:14px}
+/* riwayat type badge */
+.tx-badge.sewa{background:rgba(232,165,53,.15);color:var(--gold)}
+.tx-badge.masuk{background:rgba(53,198,106,.15);color:var(--green)}
+.tx-badge.keluar{background:rgba(232,85,53,.15);color:var(--red)}
+.tx-amount.keluar{color:var(--red)}
+.tx-amount.masuk{color:var(--green)}
+
 /* RIWAYAT */
 .filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .filter-row select,.filter-row input{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--fm);font-size:12px;padding:8px 12px;outline:none;flex:1;min-width:120px}
@@ -227,47 +241,112 @@
 
 <!-- CATAT -->
 <div class="tab" id="tab-catat">
-  <div class="section-head"><h2>Catat Transaksi</h2></div>
+  <div class="section-head"><h2>Catat</h2></div>
+  <!-- TOGGLE -->
+  <div class="catat-toggle">
+    <button class="toggle-btn active-sewa" id="tog-sewa" onclick="switchCatat('sewa')">🏠 Sewa</button>
+    <button class="toggle-btn" id="tog-masuk" onclick="switchCatat('masuk')">＋ Pemasukan</button>
+    <button class="toggle-btn" id="tog-keluar" onclick="switchCatat('keluar')">－ Pengeluaran</button>
+  </div>
+
+  <!-- FORM SEWA -->
   <div class="form-card">
-    <div class="field"><label>Unit</label>
-      <select id="f-unit" onchange="onFormChange()"><option value="">— Pilih unit —</option></select>
+    <div class="sub-form active" id="sf-sewa">
+      <div class="field"><label>Unit</label>
+        <select id="f-unit" onchange="onFormChange()"><option value="">— Pilih unit —</option></select>
+      </div>
+      <div class="field"><label>Tanggal & Waktu</label>
+        <input type="datetime-local" id="f-datetime" onchange="onFormChange()"/>
+      </div>
+      <div class="field">
+        <label>Tipe Harga <span id="period-chip" class="period-chip" style="display:none"></span></label>
+        <select id="f-period" onchange="onFormChange()">
+          <option value="auto">Auto (deteksi otomatis)</option>
+          <option value="weekday">Weekday</option>
+          <option value="weekend">Weekend</option>
+          <option value="custom">Custom (isi manual)</option>
+        </select>
+      </div>
+      <div class="field"><label>Tipe Sewa</label>
+        <select id="f-rent-type" onchange="onFormChange()">
+          <option value="full_day">Full Day</option>
+          <option value="transit_3jam">Transit 3 Jam</option>
+          <option value="transit_4jam">Transit 4 Jam</option>
+          <option value="transit_5jam">Transit 5 Jam</option>
+          <option value="transit_6jam">Transit 6 Jam</option>
+          <option value="halfday">Half Day</option>
+          <option value="promal">Promo Malam</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nominal (Rp)</label>
+        <input type="number" id="f-amount" placeholder="––" inputmode="numeric"/>
+        <div class="price-hint" id="price-hint"></div>
+      </div>
+      <div class="field"><label>Metode Bayar</label>
+        <select id="f-pay"><option value="cash">Cash</option><option value="transfer">Transfer Bank</option><option value="qris">QRIS</option></select>
+      </div>
+      <div class="field"><label>Nama Tamu <span style="color:var(--muted)">(opsional)</span></label>
+        <input type="text" id="f-guest" placeholder="Nama tamu / ID booking"/>
+      </div>
+      <hr class="divider"/>
+      <button class="btn" onclick="submitTransaction()">✓ Simpan Sewa</button>
     </div>
-    <div class="field"><label>Tanggal & Waktu</label>
-      <input type="datetime-local" id="f-datetime" onchange="onFormChange()"/>
+
+    <!-- FORM PEMASUKAN LAIN -->
+    <div class="sub-form" id="sf-masuk">
+      <div class="field"><label>Tanggal & Waktu</label>
+        <input type="datetime-local" id="m-datetime"/>
+      </div>
+      <div class="field"><label>Kategori</label>
+        <select id="m-cat">
+          <option value="parkir">Parkir</option>
+          <option value="laundry">Laundry</option>
+          <option value="denda">Denda Tamu</option>
+          <option value="lainnya">Lainnya</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nominal (Rp)</label>
+        <input type="number" id="m-amount" placeholder="contoh: 50000" inputmode="numeric"/>
+      </div>
+      <div class="field"><label>Keterangan</label>
+        <input type="text" id="m-note" placeholder="tulis keterangan..."/>
+      </div>
+      <div class="field"><label>Metode Bayar</label>
+        <select id="m-pay"><option value="cash">Cash</option><option value="transfer">Transfer Bank</option><option value="qris">QRIS</option></select>
+      </div>
+      <hr class="divider"/>
+      <button class="btn" style="background:var(--green);color:#080D14" onclick="submitOtherIncome()">✓ Simpan Pemasukan</button>
     </div>
-    <div class="field">
-      <label>Tipe Harga <span id="period-chip" class="period-chip" style="display:none"></span></label>
-      <select id="f-period" onchange="onFormChange()">
-        <option value="auto">Auto (deteksi otomatis)</option>
-        <option value="weekday">Weekday</option>
-        <option value="weekend">Weekend</option>
-        <option value="custom">Custom (isi manual)</option>
-      </select>
+
+    <!-- FORM PENGELUARAN -->
+    <div class="sub-form" id="sf-keluar">
+      <div class="field"><label>Tanggal & Waktu</label>
+        <input type="datetime-local" id="e-datetime"/>
+      </div>
+      <div class="field"><label>Kategori</label>
+        <select id="e-cat">
+          <option value="operasional">Operasional (sabun, tisu, dll)</option>
+          <option value="maintenance">Maintenance / perbaikan</option>
+          <option value="listrik_air">Listrik &amp; Air</option>
+          <option value="gaji">Gaji / Tips Staff</option>
+          <option value="lainnya">Lainnya</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nominal (Rp)</label>
+        <input type="number" id="e-amount" placeholder="contoh: 150000" inputmode="numeric"/>
+      </div>
+      <div class="field"><label>Keterangan</label>
+        <input type="text" id="e-note" placeholder="tulis keterangan..."/>
+      </div>
+      <div class="field"><label>Metode Bayar</label>
+        <select id="e-pay"><option value="cash">Cash</option><option value="transfer">Transfer Bank</option><option value="qris">QRIS</option></select>
+      </div>
+      <hr class="divider"/>
+      <button class="btn danger" onclick="submitExpense()">✓ Simpan Pengeluaran</button>
     </div>
-    <div class="field"><label>Tipe Sewa</label>
-      <select id="f-rent-type" onchange="onFormChange()">
-        <option value="full_day">Full Day</option>
-        <option value="transit_3jam">Transit 3 Jam</option>
-        <option value="transit_4jam">Transit 4 Jam</option>
-        <option value="transit_5jam">Transit 5 Jam</option>
-        <option value="transit_6jam">Transit 6 Jam</option>
-        <option value="halfday">Half Day</option>
-        <option value="promal">Promo Malam</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Nominal (Rp)</label>
-      <input type="number" id="f-amount" placeholder="––" inputmode="numeric"/>
-      <div class="price-hint" id="price-hint"></div>
-    </div>
-    <div class="field"><label>Metode Bayar</label>
-      <select id="f-pay"><option value="cash">Cash</option><option value="transfer">Transfer Bank</option><option value="qris">QRIS</option></select>
-    </div>
-    <div class="field"><label>Nama Tamu <span style="color:var(--muted)">(opsional)</span></label>
-      <input type="text" id="f-guest" placeholder="Nama tamu / ID booking"/>
-    </div>
-    <hr class="divider"/>
-    <button class="btn" onclick="submitTransaction()">✓ Simpan Transaksi</button>
   </div>
 </div>
 
@@ -275,8 +354,16 @@
 <div class="tab" id="tab-riwayat">
   <div class="section-head"><h2>Riwayat</h2></div>
   <div class="filter-row">
-    <select id="fil-unit" onchange="renderRiwayat()"><option value="">Semua unit</option></select>
+    <select id="fil-type" onchange="renderRiwayat()">
+      <option value="">Semua tipe</option>
+      <option value="sewa">🏠 Sewa</option>
+      <option value="masuk">＋ Pemasukan</option>
+      <option value="keluar">－ Pengeluaran</option>
+    </select>
     <input type="date" id="fil-date" onchange="renderRiwayat()"/>
+  </div>
+  <div class="filter-row" style="margin-top:-6px">
+    <select id="fil-unit" onchange="renderRiwayat()"><option value="">Semua unit</option></select>
   </div>
   <div class="tx-list" id="tx-list"><div class="empty-state"><div class="emoji">📋</div><p>Belum ada transaksi</p></div></div>
 </div>
@@ -412,8 +499,9 @@ const db = firebase.database();
 // ═══════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════
-let currentUser=null, allTransactions=[], unitStatuses={}, unitsConfig={};
+let currentUser=null, allTransactions=[], allExpenses=[], allOtherIncome=[], unitStatuses={}, unitsConfig={};
 let mainChart=null, activeModalUnit=null, pendingDeleteUnit=null;
+let activeCatatMode='sewa';
 
 // ═══════════════════════════════════════
 // AUTH
@@ -450,6 +538,7 @@ document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key===
 function initApp() {
   setDefaultDatetime(); renderTodayStr();
   listenUnitsConfig(); listenUnits(); listenTransactions();
+  listenExpenses(); listenOtherIncome();
 }
 function setDefaultDatetime() {
   const n=new Date(), p=x=>String(x).padStart(2,'0');
@@ -618,8 +707,98 @@ function onFormChange() {
 }
 
 // ═══════════════════════════════════════
-// TRANSACTIONS
+// CATAT TOGGLE
 // ═══════════════════════════════════════
+function switchCatat(mode) {
+  activeCatatMode = mode;
+  ['sewa','masuk','keluar'].forEach(m => {
+    document.getElementById('sf-'+m).classList.toggle('active', m===mode);
+    const btn = document.getElementById('tog-'+m);
+    btn.className = 'toggle-btn' + (m===mode ? ' active-'+mode : '');
+  });
+  if(mode==='sewa'){setDefaultDatetime();onFormChange();}
+  else {
+    const dtField = document.getElementById(mode==='masuk'?'m-datetime':'e-datetime');
+    if(dtField && !dtField.value){
+      const n=new Date(), p=x=>String(x).padStart(2,'0');
+      dtField.value=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}T${p(n.getHours())}:${p(n.getMinutes())}`;
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+// OTHER INCOME
+// ═══════════════════════════════════════
+function listenOtherIncome() {
+  db.ref('other_income').on('value', snap => {
+    const raw = snap.val()||{};
+    allOtherIncome = Object.entries(raw).map(([id,d])=>({id,...d})).sort((a,b)=>b.timestamp-a.timestamp);
+    renderRiwayat(); updateTodayStats();
+    if(currentUser?.role==='owner') renderLaporan();
+  });
+}
+
+function submitOtherIncome() {
+  const dtVal = document.getElementById('m-datetime').value;
+  const cat   = document.getElementById('m-cat').value;
+  const amount= parseFloat(document.getElementById('m-amount').value);
+  const note  = document.getElementById('m-note').value.trim();
+  const pay   = document.getElementById('m-pay').value;
+  if(!dtVal){toast('Tanggal wajib diisi!','error');return;}
+  if(!amount||amount<=0){toast('Nominal tidak valid!','error');return;}
+  const dt=new Date(dtVal);
+  db.ref('other_income').push({
+    category:cat, amount, note:note||null, paymentMethod:pay,
+    timestamp:dt.getTime(), date:dtVal.slice(0,10),
+    recordedBy:currentUser.username, createdAt:Date.now()
+  }).then(()=>{
+    toast('Pemasukan tersimpan!','success');
+    document.getElementById('m-amount').value='';
+    document.getElementById('m-note').value='';
+  }).catch(e=>toast('Gagal: '+e.message,'error'));
+}
+
+function deleteOtherIncome(id){
+  if(!confirm('Hapus pemasukan ini?'))return;
+  db.ref(`other_income/${id}`).remove().then(()=>toast('Dihapus','success'));
+}
+
+// ═══════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════
+function listenExpenses() {
+  db.ref('expenses').on('value', snap => {
+    const raw = snap.val()||{};
+    allExpenses = Object.entries(raw).map(([id,d])=>({id,...d})).sort((a,b)=>b.timestamp-a.timestamp);
+    renderRiwayat(); updateTodayStats();
+    if(currentUser?.role==='owner') renderLaporan();
+  });
+}
+
+function submitExpense() {
+  const dtVal = document.getElementById('e-datetime').value;
+  const cat   = document.getElementById('e-cat').value;
+  const amount= parseFloat(document.getElementById('e-amount').value);
+  const note  = document.getElementById('e-note').value.trim();
+  const pay   = document.getElementById('e-pay').value;
+  if(!dtVal){toast('Tanggal wajib diisi!','error');return;}
+  if(!amount||amount<=0){toast('Nominal tidak valid!','error');return;}
+  const dt=new Date(dtVal);
+  db.ref('expenses').push({
+    category:cat, amount, note:note||null, paymentMethod:pay,
+    timestamp:dt.getTime(), date:dtVal.slice(0,10),
+    recordedBy:currentUser.username, createdAt:Date.now()
+  }).then(()=>{
+    toast('Pengeluaran tersimpan!','success');
+    document.getElementById('e-amount').value='';
+    document.getElementById('e-note').value='';
+  }).catch(e=>toast('Gagal: '+e.message,'error'));
+}
+
+function deleteExpense(id){
+  if(!confirm('Hapus pengeluaran ini?'))return;
+  db.ref(`expenses/${id}`).remove().then(()=>toast('Dihapus','success'));
+}
 function listenTransactions() {
   db.ref('transactions').on('value',snap=>{
     const raw=snap.val()||{};
@@ -671,30 +850,71 @@ function deleteTransaction(id){
 // RIWAYAT
 // ═══════════════════════════════════════
 function renderRiwayat() {
-  const unitF=document.getElementById('fil-unit').value;
-  const dateF=document.getElementById('fil-date').value;
-  let data=[...allTransactions];
-  if(unitF)data=data.filter(t=>t.unitId===unitF);
-  if(dateF)data=data.filter(t=>t.date===dateF);
+  const typeF = document.getElementById('fil-type')?.value || '';
+  const unitF = document.getElementById('fil-unit')?.value || '';
+  const dateF = document.getElementById('fil-date')?.value || '';
+
+  const EXP_CAT  = {operasional:'Operasional',maintenance:'Maintenance',listrik_air:'Listrik & Air',gaji:'Gaji/Tips Staff',lainnya:'Lainnya'};
+  const INC_CAT  = {parkir:'Parkir',laundry:'Laundry',denda:'Denda Tamu',lainnya:'Lainnya'};
+
+  // gabungkan semua data
+  let combined = [];
+  if(!typeF || typeF==='sewa') {
+    let d=[...allTransactions];
+    if(unitF) d=d.filter(t=>t.unitId===unitF);
+    if(dateF) d=d.filter(t=>t.date===dateF);
+    combined.push(...d.map(t=>({...t,_type:'sewa'})));
+  }
+  if(!typeF || typeF==='masuk') {
+    let d=[...allOtherIncome];
+    if(dateF) d=d.filter(t=>t.date===dateF);
+    combined.push(...d.map(t=>({...t,_type:'masuk'})));
+  }
+  if(!typeF || typeF==='keluar') {
+    let d=[...allExpenses];
+    if(dateF) d=d.filter(t=>t.date===dateF);
+    combined.push(...d.map(t=>({...t,_type:'keluar'})));
+  }
+  combined.sort((a,b)=>b.timestamp-a.timestamp);
+
   const list=document.getElementById('tx-list');
-  if(!data.length){list.innerHTML=`<div class="empty-state"><div class="emoji">📋</div><p>Tidak ada transaksi</p></div>`;return;}
+  if(!combined.length){list.innerHTML=`<div class="empty-state"><div class="emoji">📋</div><p>Tidak ada data</p></div>`;return;}
   const canDel=currentUser?.role==='owner';
-  list.innerHTML=data.map(t=>{
+
+  list.innerHTML=combined.map(t=>{
     const dt=new Date(t.timestamp);
     const dts=dt.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-    const pp=t.pricePeriod||'';
-    const badge=pp?`<span class="tx-badge ${pp}">${pp}</span>`:'';
-    const uLabel=unitsConfig[t.unitId]?.label||t.unitId;
+    let title='', meta='', amountClass='tx-amount', delBtn='';
+
+    if(t._type==='sewa') {
+      const pp=t.pricePeriod||'';
+      const badge=pp?`<span class="tx-badge ${pp}">${pp}</span>`:'';
+      const uLabel=unitsConfig[t.unitId]?.label||t.unitId;
+      title=`${uLabel} ${badge}`;
+      meta=`${dts} · ${RENT_LABELS[t.rentType]||t.rentType||''}${t.guestName?' · '+t.guestName:''}`;
+      if(canDel) delBtn=`<button class="tx-del" onclick="deleteTransaction('${t.id}')">✕</button>`;
+    } else if(t._type==='masuk') {
+      title=`<span class="tx-badge masuk">＋ pemasukan</span> ${INC_CAT[t.category]||t.category}`;
+      meta=`${dts}${t.note?' · '+t.note:''}`;
+      amountClass='tx-amount masuk';
+      if(canDel) delBtn=`<button class="tx-del" onclick="deleteOtherIncome('${t.id}')">✕</button>`;
+    } else {
+      title=`<span class="tx-badge keluar">－ pengeluaran</span> ${EXP_CAT[t.category]||t.category}`;
+      meta=`${dts}${t.note?' · '+t.note:''}`;
+      amountClass='tx-amount keluar';
+      if(canDel) delBtn=`<button class="tx-del" onclick="deleteExpense('${t.id}')">✕</button>`;
+    }
+
     return `<div class="tx-item">
       <div class="tx-left">
-        <div class="tx-unit">${uLabel} ${badge}</div>
-        <div class="tx-meta">${dts} · ${RENT_LABELS[t.rentType]||t.rentType||''}${t.guestName?' · '+t.guestName:''}</div>
+        <div class="tx-unit">${title}</div>
+        <div class="tx-meta">${meta}</div>
       </div>
       <div class="tx-right">
-        <div class="tx-amount">${fmtRp(t.amount)}</div>
-        <div class="tx-method">${PAY_LABELS[t.paymentMethod]||t.paymentMethod}</div>
+        <div class="${amountClass}">${t._type==='keluar'?'- ':''} ${fmtRp(t.amount)}</div>
+        <div class="tx-method">${PAY_LABELS[t.paymentMethod]||t.paymentMethod||''}</div>
       </div>
-      ${canDel?`<button class="tx-del" onclick="deleteTransaction('${t.id}')">✕</button>`:''}
+      ${delBtn}
     </div>`;
   }).join('');
 }
@@ -705,8 +925,12 @@ function renderRiwayat() {
 function updateTodayStats() {
   const today=todayStr();
   const tx=allTransactions.filter(t=>t.date===today);
-  document.getElementById('stat-today-rev').textContent=fmtRp(tx.reduce((s,t)=>s+t.amount,0));
-  document.getElementById('stat-today-tx').textContent=tx.length;
+  const inc=allOtherIncome.filter(t=>t.date===today);
+  const exp=allExpenses.filter(t=>t.date===today);
+  const totalIn = tx.reduce((s,t)=>s+t.amount,0) + inc.reduce((s,t)=>s+t.amount,0);
+  const totalOut= exp.reduce((s,t)=>s+t.amount,0);
+  document.getElementById('stat-today-rev').textContent=fmtRp(totalIn - totalOut);
+  document.getElementById('stat-today-tx').textContent=tx.length+inc.length+exp.length;
 }
 
 // ═══════════════════════════════════════
@@ -714,15 +938,28 @@ function updateTodayStats() {
 // ═══════════════════════════════════════
 function renderLaporan() {
   const today=todayStr(), yest=dateOffset(-1);
-  const tr=sumByDate(today), yr=sumByDate(yest);
-  const diff=tr-yr, pct=yr>0?Math.round(diff/yr*100):(tr>0?100:0);
-  document.getElementById('rev-today').textContent=fmtRp(tr);
+
+  const incToday = sumByDate(today) + allOtherIncome.filter(t=>t.date===today).reduce((s,t)=>s+t.amount,0);
+  const expToday = allExpenses.filter(t=>t.date===today).reduce((s,t)=>s+t.amount,0);
+  const netToday = incToday - expToday;
+
+  const incYest  = sumByDate(yest) + allOtherIncome.filter(t=>t.date===yest).reduce((s,t)=>s+t.amount,0);
+  const expYest  = allExpenses.filter(t=>t.date===yest).reduce((s,t)=>s+t.amount,0);
+  const netYest  = incYest - expYest;
+
+  const diff=netToday-netYest, pct=netYest>0?Math.round(diff/netYest*100):(netToday>0?100:0);
+  document.getElementById('rev-today').textContent=fmtRp(netToday);
   document.getElementById('rev-today').className='rev-val '+(diff>0?'up':diff<0?'down':'neutral');
   document.getElementById('rev-change').textContent=`vs kemarin ${diff>=0?'+':''}${fmtRp(diff)} (${pct}%)`;
+
   const ym=today.slice(0,7);
-  const mTx=allTransactions.filter(t=>t.date?.startsWith(ym));
-  document.getElementById('rev-month').textContent=fmtRp(mTx.reduce((s,t)=>s+t.amount,0));
-  document.getElementById('rev-month-tx').textContent=`${mTx.length} transaksi`;
+  const mSewa = allTransactions.filter(t=>t.date?.startsWith(ym)).reduce((s,t)=>s+t.amount,0);
+  const mInc  = allOtherIncome.filter(t=>t.date?.startsWith(ym)).reduce((s,t)=>s+t.amount,0);
+  const mExp  = allExpenses.filter(t=>t.date?.startsWith(ym)).reduce((s,t)=>s+t.amount,0);
+  const mNet  = mSewa + mInc - mExp;
+  document.getElementById('rev-month').textContent=fmtRp(mNet);
+  document.getElementById('rev-month-tx').textContent=`keluar ${fmtRp(mExp)}`;
+
   renderMainChart(); renderUnitBreakdown(ym); renderDOW();
 }
 
@@ -784,7 +1021,7 @@ function switchTab(name,btn) {
   document.getElementById('tab-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='laporan'&&currentUser?.role==='owner')renderLaporan();
-  if(name==='catat'){setDefaultDatetime();onFormChange();}
+  if(name==='catat'){switchCatat(activeCatatMode);}
 }
 
 // ═══════════════════════════════════════
